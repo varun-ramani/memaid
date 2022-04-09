@@ -56,9 +56,11 @@ class _TestucamState extends State<Testucam> {
     });
   }
 
-  void handleImage(CameraImage image) async {
-    // List<int> outputBytes = await prepareCameraImage(image);
-    // serverConn.sendImage(outputBytes);
+  Future<void> handleImage(CameraImage image) async {
+    print("Preparing camera image");
+    List<int> outputBytes = prepareCameraImage(image);
+    print("Sending camera image");
+    serverConn.sendImage(outputBytes);
   }
 
   void dispose() {

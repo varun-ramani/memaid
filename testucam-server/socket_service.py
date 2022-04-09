@@ -15,7 +15,6 @@ def recvall(sock: socket.socket, length: int):
         data_received = sock.recv(min(length_remaining, 2**14))
 
         if len(data_received) == 0:
-            destroy_conn(sock)
             return None
 
         length_remaining -= len(data_received)
@@ -39,9 +38,17 @@ def accept_conn(master_sock: socket.socket, mask):
 
 
 def read_as_image(client_sock: socket.socket):
-    # read width and height of the image
-    image_length = int.from_bytes(recvall(client_sock, 4), byteorder="big")
+    # read image length
+    image_length_bytes = recvall(client_sock, 4)
+    if image_length_bytes is None:
+        destroy_conn(client_sock)
+        return None
+
+    image_length = int.from_bytes(image_length_bytes, byteorder='big')
     image_bytes = recvall(client_sock, image_length)
+    if image_bytes is None:
+        destroy_conn(client_sock)
+        return None
 
     print(f"Got image of length {image_length}")
 
@@ -49,7 +56,7 @@ def read_as_image(client_sock: socket.socket):
 
 def read_message(client_sock: socket.socket, mask):
     message_type = recvall(client_sock, 1)
-    if len(message_type):
+    if message_type is None:
         destroy_conn(client_sock)
         return None
     
@@ -66,6 +73,7 @@ def start_listening(host, port):
     master_sock.listen(100)
 
     sel.register(master_sock, selectors.EVENT_READ, accept_conn)
+    atexit.register(destroy_conn, master_sock)
 
 
 def do_poll():

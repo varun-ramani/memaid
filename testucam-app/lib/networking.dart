@@ -24,7 +24,7 @@ class ServerConn {
 
     // Write the image length
     sock?.add(Uint8List(4)
-      ..buffer.asByteData().setUint32(0, imageBytes.length, Endian.big));
+      ..buffer.asByteData().setUint32(0, imageBytes.length * 4, Endian.big));
 
     sock?.add(imageBytes);
   }
