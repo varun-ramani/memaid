@@ -1,3 +1,4 @@
+from http.client import responses
 import requests as re
 import os
 from google.cloud import language_v1
@@ -27,14 +28,15 @@ def sample_analyze_entities(text_content):
     encoding_type = language_v1.EncodingType.UTF8
 
     response = client.analyze_entities(request = {'document': document, 'encoding_type': encoding_type})
-
+    persons = []
     # Loop through entitites returned from the API
     for entity in response.entities:
         print(u"Representative name for the entity: {}".format(entity.name))
-
+        entity_type = language_v1.Entity.Type(entity.type_).name
         # Get entity type, e.g. PERSON, LOCATION, ADDRESS, NUMBER, et al
         print(u"Entity type: {}".format(language_v1.Entity.Type(entity.type_).name))
-
+        if entity_type == "PERSON":
+            persons.append(entity.name)
         # Get the salience score associated with the entity in the [0, 1.0] range
         print(u"Salience score: {}".format(entity.salience))
 
@@ -54,13 +56,37 @@ def sample_analyze_entities(text_content):
             print(
                 u"Mention type: {}".format(language_v1.EntityMention.Type(mention.type_).name)
             )
-
+        print(" -------- NEXT THING ---------- ")
     # Get the language of the text, which will be the same as
     # the language specified in the request or, if not specified,
     # the automatically-detected language.
     print(u"Language of the text: {}".format(response.language))
+    
+    return response, persons
 
-text_content = "Hey, my name is Mark. How are you doing? Yeah the weather's been pretty bad lately. But what's up with you? Oh yeah I live in Gaithersburg. But I want to move to New York!"
+text_content = "Hey, it's beautiful weather we're having today, isn't it? Yeah I love going to bitcamp and hacking. Oh yeah what's up by the way. And I use arch. Barbara has been getting on my nerves lately though. I'm hungry. She's a real pain."
 
+response, persons = sample_analyze_entities(text_content)
+looking_for = "my name is"
+name_start = text_content.lower().find(looking_for)
+if name_start != -1:
+    print(" *********** THIS HERE *****************")
+    name_rest = text_content[name_start + len(looking_for) + 1:]
+    name = name_rest[:name_rest.find(" ")]
+    name = name.strip()
+    punctuation = "!\"'(),.:;?`"
+    for character in punctuation:
+        name = name.replace(character, '')
+    
+    print(name)
+elif text_content.lower().find("i'm") != -1:
+    name_start = text_content.lower().find("i'm")
+    name_rest = text_content[name_start + len("i'm") + 1:]
+    name = name_rest[:name_rest.find(" ")]
+    punctuation = "!\"'(),.:;?`"
+    for character in punctuation:
+        name = name.replace(character, '')
+    
+    if name in persons:
+        print(name)
 
-sample_analyze_entities(text_content)
