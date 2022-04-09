@@ -1,7 +1,7 @@
 import requests as re
-
+import os
 from google.cloud import language_v1
-
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'service-account-file.json'
 def sample_analyze_entities(text_content):
     """
     Analyzing Entities in a String
@@ -26,7 +26,7 @@ def sample_analyze_entities(text_content):
     # Available values: NONE, UTF8, UTF16, UTF32
     encoding_type = language_v1.EncodingType.UTF8
 
-    response = client.analyze_entities(request = {'document': document, 'encoding_type': encoding_type, 'key': "AIzaSyCHKuiJtaZ-67YU38KhVGV__YNZQ9jAWFM"})
+    response = client.analyze_entities(request = {'document': document, 'encoding_type': encoding_type})
 
     # Loop through entitites returned from the API
     for entity in response.entities:
@@ -60,7 +60,7 @@ def sample_analyze_entities(text_content):
     # the automatically-detected language.
     print(u"Language of the text: {}".format(response.language))
 
-text_content = "Fourscore and seven years ago our fathers brought forth, on this continent, a new nation, conceived in liberty, and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived, and so dedicated, can long endure."
+text_content = "Hey, my name is Mark. How are you doing? Yeah the weather's been pretty bad lately. But what's up with you? Oh yeah I live in Gaithersburg. But I want to move to New York!"
 
 
 sample_analyze_entities(text_content)
