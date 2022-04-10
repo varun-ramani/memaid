@@ -1,18 +1,18 @@
-import argparse
 import asyncio
 import atexit
 import json
 import logging
 import os
 import uuid
-import face_recognition
-import cv2
 
 from aiohttp import web
 from av import VideoFrame
 import aiohttp_cors
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder, MediaRelay
+from aiortc.rtcrtpreceiver import RemoteStreamTrack
+
+from audio_processing import AudioConsumer
 
 ROOT = os.path.dirname(__file__)
 
@@ -36,10 +36,9 @@ class VideoTransformTrack(MediaStreamTrack):
 
     kind = "video"
 
-    def __init__(self, track, transform):
+    def __init__(self, track):
         super().__init__()  # don't forget this!
         self.track = track
-        self.transform = transform
 
     async def recv(self):
         frame = await self.track.recv()
@@ -72,6 +71,7 @@ async def offer(request):
     # prepare local media
     player = MediaPlayer(os.path.join(ROOT, "demo-instruct.wav"))
     recorder = MediaBlackhole()
+    audio_consumer = AudioConsumer()
 
     @pc.on("datachannel")
     def on_datachannel(channel):
@@ -88,17 +88,17 @@ async def offer(request):
             pcs.discard(pc)
 
     @pc.on("track")
-    def on_track(track):
+    def on_track(track: RemoteStreamTrack):
         log_info("Track %s received", track.kind)
         print(f"Got new track {track.kind}")
 
         if track.kind == "audio":
-            pc.addTrack(player.audio)
-            recorder.addTrack(track)
+            audio_consumer.set_consume_track(track)
+
         elif track.kind == "video":
             pc.addTrack(
                 VideoTransformTrack(
-                    relay.subscribe(track), transform=params["video_transform"]
+                    relay.subscribe(track)
                 )
             )
 
@@ -110,6 +110,7 @@ async def offer(request):
     # handle offer
     await pc.setRemoteDescription(offer)
     await recorder.start()
+    await audio_consumer.start()
 
     # send answer
     answer = await pc.createAnswer()
