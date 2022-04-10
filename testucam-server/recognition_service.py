@@ -5,6 +5,7 @@ import threading
 
 import face_recognition
 import numpy as np
+import synchronization_service
 
 CASC_PATH = "./haarcascade_frontalface_default.xml"
 face_casc = cv2.CascadeClassifier(CASC_PATH)
@@ -12,7 +13,6 @@ face_casc = cv2.CascadeClassifier(CASC_PATH)
 largest_face_queue = Queue()
 
 facial_encodings = []
-names = []
 
 def run_haar(input_image):
     img = input_image
@@ -55,9 +55,6 @@ def set_largest_face(face):
     largest_face_queue.put(face)
 
 def facial_recognition(input_image):
-    print(names)
-    print(input_image.shape)
-    
     input_image = cv2.cvtColor(input_image, cv2.COLOR_BGR2RGB)
 
     cv2.imwrite("test.png", input_image)
@@ -75,13 +72,16 @@ def facial_recognition(input_image):
 
         best_match_index = np.argmin(face_distances)
         if matches[best_match_index]:
-            pass
+            synchronization_service.add_to_queue(best_match_index)
+
         else:
+            next_index = len(facial_encodings)
             facial_encodings.append(encoding)
-            names.append("Bruh")
+            synchronization_service.add_to_queue(next_index)
     else:
+        next_index = len(facial_encodings)
         facial_encodings.append(encoding)
-        names.append("Bruh")
+        synchronization_service.add_to_queue(next_index)
 
 def start_recognition_service():
     while True:

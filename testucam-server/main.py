@@ -5,6 +5,8 @@ import logging
 import os
 import uuid
 
+import speech_service
+
 import numpy as np
 import cv2
 
@@ -14,6 +16,7 @@ import aiohttp_cors
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder, MediaRelay
 from aiortc.rtcrtpreceiver import RemoteStreamTrack
+from peerconnection import pc
 
 from audio_processing import AudioConsumer
 
@@ -59,20 +62,6 @@ class VideoTransformTrack(MediaStreamTrack):
             recognition_service.set_largest_face(largest_face)
 
 
-        # # whatever you do here
-
-        # max_face_encoding = face_recognition.face_encodings(img)[max_index]
-        
-       
-
-        # for (top, right, bottom, left), name in zip(face_locations, names):
-        #     cv2.rectangle(img, (left, top), (right, bottom), (0, 0, 255), 2)
-        #     cv2.rectangle(img, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
-        #     font = cv2.FONT_HERSHEY_DUPLEX
-        #     cv2.putText(img, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
-
-        # img = bboxes_image
-
         new_frame = VideoFrame.from_ndarray(img, format="bgr24")
         new_frame.pts = frame.pts
         new_frame.time_base = frame.time_base
@@ -83,7 +72,6 @@ async def offer(request):
     params = await request.json()
     offer = RTCSessionDescription(sdp=params["sdp"], type=params["type"])
 
-    pc = RTCPeerConnection()
     pc_id = "PeerConnection(%s)" % uuid.uuid4()
     pcs.add(pc)
 
