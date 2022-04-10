@@ -31,7 +31,8 @@ def find_face_vector(image_file):
     global face_encodings
     #get the location of the faces in the image
     small_frame = cv2.resize(image_file, (0, 0), fx=0.25, fy=0.25)
-    image = face_recognition.load_image_file(small_frame)
+    rgb_small_frame = small_frame[:, :, ::-1]
+    image = face_recognition.load_image_file(rgb_small_frame)
     face_locations = face_recognition.face_locations(image)
     
     # find the index of the most prominent image
