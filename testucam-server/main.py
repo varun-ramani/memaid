@@ -1,8 +1,10 @@
 import argparse
 import asyncio
+import atexit
 import json
 import logging
 import os
+from socket import ALG_SET_AEAD_AUTHSIZE
 import ssl
 import uuid
 
@@ -19,6 +21,13 @@ logger = logging.getLogger("pc")
 pcs = set()
 relay = MediaRelay()
 
+from pathlib import Path
+data_json_path = Path("data.json")
+if data_json_path.exists():
+    with open("data.json", "r") as f:
+        data_storage = json.load(f)
+else:
+    data_storage = {}
 
 class VideoTransformTrack(MediaStreamTrack):
     """
@@ -136,6 +145,11 @@ for route in list(app.router.routes()):
         )
     })
 
+def persist_data():
+    with open("data.json", "w") as f:
+        json.dump(data_storage, f)
+
+atexit.register(persist_data)
 
 if __name__ == "__main__":
     web.run_app(
