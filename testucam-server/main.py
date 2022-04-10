@@ -49,15 +49,15 @@ class VideoTransformTrack(MediaStreamTrack):
         img = frame.to_ndarray(format="bgr24")
         
         # # whatever you do here
-        # face_locations = face_recognition.face_locations(img)
-        # max_area = 0
-        # max_index = 0
-        # for i in range(len(faces)):
-        #     x_len = abs(faces[i][2] - faces[i][0])
-        #     y_len = abs(faces[i][3] - faces[i][1])
-        #     if x_len * y_len > max_area:
-        #         max_area = x_len * y_len
-        #         max_index = i
+        face_locations = face_recognition.face_locations(img)
+        max_area = 0
+        max_index = 0
+        for i in range(len(faces)):
+            x_len = abs(faces[i][2] - faces[i][0])
+            y_len = abs(faces[i][3] - faces[i][1])
+            if x_len * y_len > max_area:
+                max_area = x_len * y_len
+                max_index = i
         
         max_face_encoding = face_recognition.face_encodings(img)[max_index]
         
