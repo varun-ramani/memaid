@@ -4,11 +4,8 @@ import atexit
 import json
 import logging
 import os
-from socket import ALG_SET_AEAD_AUTHSIZE
-import ssl
 import uuid
 
-import cv2
 from aiohttp import web
 from av import VideoFrame
 import aiohttp_cors
@@ -28,6 +25,7 @@ if data_json_path.exists():
         data_storage = json.load(f)
 else:
     data_storage = {}
+
 
 class VideoTransformTrack(MediaStreamTrack):
     """
