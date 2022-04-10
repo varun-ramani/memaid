@@ -1,18 +1,18 @@
-import argparse
 import asyncio
 import atexit
 import json
 import logging
 import os
 import uuid
-import face_recognition
-import cv2
 
 from aiohttp import web
 from av import VideoFrame
 import aiohttp_cors
 from aiortc import MediaStreamTrack, RTCPeerConnection, RTCSessionDescription
 from aiortc.contrib.media import MediaBlackhole, MediaPlayer, MediaRecorder, MediaRelay
+from aiortc.rtcrtpreceiver import RemoteStreamTrack
+
+from audio_processing import AudioConsumer
 
 ROOT = os.path.dirname(__file__)
 
@@ -37,10 +37,9 @@ class VideoTransformTrack(MediaStreamTrack):
 
     kind = "video"
 
-    def __init__(self, track, transform):
+    def __init__(self, track):
         super().__init__()  # don't forget this!
         self.track = track
-        self.transform = transform
 
     async def recv(self):
         global faces
@@ -49,35 +48,35 @@ class VideoTransformTrack(MediaStreamTrack):
 
         img = frame.to_ndarray(format="bgr24")
         
-        # whatever you do here
-        face_locations = face_recognition.face_locations(img)
-        max_area = 0
-        max_index = 0
-        for i in range(len(faces)):
-            x_len = abs(faces[i][2] - faces[i][0])
-            y_len = abs(faces[i][3] - faces[i][1])
-            if x_len * y_len > max_area:
-                max_area = x_len * y_len
-                max_index = i
+        # # whatever you do here
+        # face_locations = face_recognition.face_locations(img)
+        # max_area = 0
+        # max_index = 0
+        # for i in range(len(faces)):
+        #     x_len = abs(faces[i][2] - faces[i][0])
+        #     y_len = abs(faces[i][3] - faces[i][1])
+        #     if x_len * y_len > max_area:
+        #         max_area = x_len * y_len
+        #         max_index = i
         
-        max_face_encoding = face_recognition.face_encodings(image)[max_index]
+        # max_face_encoding = face_recognition.face_encodings(image)[max_index]
         
-        matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-        face_distances = face_recognition.face_distance(faces, max_face_encoding)
-        best_match_index = np.argmin(face_distances)
-        if matches[best_match_index]:
-            print("Duplicate face")
-        else:
-            faces.append(max_face_encoding)
-            names.append("Ramani")
+        # matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+        # face_distances = face_recognition.face_distance(faces, max_face_encoding)
+        # best_match_index = np.argmin(face_distances)
+        # if matches[best_match_index]:
+        #     print("Duplicate face")
+        # else:
+        #     faces.append(max_face_encoding)
+        #     names.append("Ramani")
 
-        for (top, right, bottom, left), name in zip(face_locations, names):
-            cv2.rectangle(img, (left, top), (right, bottom), (0, 0, 255), 2)
-            cv2.rectangle(img, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
-            font = cv2.FONT_HERSHEY_DUPLEX
-            cv2.putText(img, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+        # for (top, right, bottom, left), name in zip(face_locations, names):
+        #     cv2.rectangle(img, (left, top), (right, bottom), (0, 0, 255), 2)
+        #     cv2.rectangle(img, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+        #     font = cv2.FONT_HERSHEY_DUPLEX
+        #     cv2.putText(img, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
-        transform_output = img
+        # transform_output = img
         new_frame = VideoFrame.from_ndarray(img, format="bgr24")
         new_frame.pts = frame.pts
         new_frame.time_base = frame.time_base
@@ -100,6 +99,7 @@ async def offer(request):
     # prepare local media
     player = MediaPlayer(os.path.join(ROOT, "demo-instruct.wav"))
     recorder = MediaBlackhole()
+    audio_consumer = AudioConsumer()
 
     @pc.on("datachannel")
     def on_datachannel(channel):
@@ -116,17 +116,17 @@ async def offer(request):
             pcs.discard(pc)
 
     @pc.on("track")
-    def on_track(track):
+    def on_track(track: RemoteStreamTrack):
         log_info("Track %s received", track.kind)
         print(f"Got new track {track.kind}")
 
         if track.kind == "audio":
-            pc.addTrack(player.audio)
-            recorder.addTrack(track)
+            audio_consumer.set_consume_track(track)
+
         elif track.kind == "video":
             pc.addTrack(
                 VideoTransformTrack(
-                    relay.subscribe(track), transform=params["video_transform"]
+                    relay.subscribe(track)
                 )
             )
 
@@ -138,6 +138,7 @@ async def offer(request):
     # handle offer
     await pc.setRemoteDescription(offer)
     await recorder.start()
+    await audio_consumer.start()
 
     # send answer
     answer = await pc.createAnswer()
@@ -172,12 +173,6 @@ for route in list(app.router.routes()):
             allow_methods="*"
         )
     })
-
-# def persist_data():
-#     with open("data.json", "w") as f:
-#         json.dump(data_storage, f)
-
-atexit.register(persist_data)
 
 if __name__ == "__main__":
     web.run_app(
