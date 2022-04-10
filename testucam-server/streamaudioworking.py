@@ -1,4 +1,5 @@
 from __future__ import division
+from queue import Queue
 
 import re
 import sys
@@ -21,19 +22,41 @@ class MicrophoneStream(object):
         self._chunk = chunk
 
         # Create a thread-safe buffer of audio data
-        self._buff = buf
+        self._buff = Queue()
         self.closed = True
 
     def __enter__(self):
         self.closed = False
-
+        self._audio_interface = pyaudio.PyAudio()
+        self._audio_stream = self._audio_interface.open(
+            format=pyaudio.paInt16,
+            # The API currently only supports 1-channel (mono) audio
+            # https://goo.gl/z757pE
+            channels=1,
+            rate=self._rate,
+            input=True,
+            frames_per_buffer=self._chunk,
+            # Run the audio stream asynchronously to fill the buffer object.
+            # This is necessary so that the input device's buffer doesn't
+            # overflow while the calling thread makes network requests, etc.
+            stream_callback=self._fill_buffer,
+        )
         return self
 
     def __exit__(self, type, value, traceback):
+        self._audio_stream.stop_stream()
+        self._audio_stream.close()
         self.closed = True
         # Signal the generator to terminate so that the client's
         # streaming_recognize method will not block the process termination.
         self._buff.put(None)
+        self._audio_interface.terminate()
+
+    def _fill_buffer(self, in_data, frame_count, time_info, status_flags):
+        """Continuously collect data from the audio stream, into the buffer."""
+        self._buff.put(in_data)
+        return None, pyaudio.paContinue
+
 
     def generator(self):
         while not self.closed:
