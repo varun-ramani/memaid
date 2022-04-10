@@ -60,9 +60,9 @@ class VideoTransformTrack(MediaStreamTrack):
                 max_area = x_len * y_len
                 max_index = i
         
-        max_face_encoding = face_recognition.face_encodings(image)[max_index]
+        max_face_encoding = face_recognition.face_encodings(img)[max_index]
         
-        matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+        matches = face_recognition.compare_faces(faces, max_face_encoding)
         face_distances = face_recognition.face_distance(faces, max_face_encoding)
         best_match_index = np.argmin(face_distances)
         if matches[best_match_index]:
