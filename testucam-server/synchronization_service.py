@@ -1,3 +1,4 @@
+from re import L
 from threading import Thread
 from collections import Counter
 import datetime
@@ -13,7 +14,7 @@ most_common = None
 last_update = datetime.datetime.now()
 
 names = {
-
+    
 }
 
 def add_to_queue(new_value):
@@ -28,16 +29,18 @@ def add_to_queue(new_value):
     most_common = Counter(looking_at_queue).most_common(1)[0][0]
 
     if most_common != previous_most_common and most_common in names:
-        speech_service.text_to_wav(f"en-US-Wavenet-B", f"{names[most_common]} is looking at you!")
+        speech_service.text_to_wav(f"en-US-Wavenet-B", f"{names[most_common]['name']} is looking at you!")
         os.system("vlc --vout none --no-video --play-and-exit output.wav")
+
+        if 'topics' in names[most_common]:
+            speech_service.text_to_wav(f"en-US-Wavenet-B", f"Last time, you talked about {'and'.join(names[most_common]['topics'])}")
+            os.system("vlc --vout none --no-video --play-and-exit output.wav")
 
     last_update = datetime.datetime.now()
 
-    print(looking_at_queue)
     print(names)
 
 def get_looking_at():
-    print(f"Most common: {most_common}")
     last_update_diff = datetime.datetime.now() - last_update
     if last_update_diff.seconds > 2:
         return None
@@ -46,6 +49,14 @@ def get_looking_at():
 
 def set_name(name):
     looking_at = get_looking_at()
-    print(f"Attempting to set name of {looking_at} to {name}")
     if looking_at is not None:
-        names[looking_at] = name
+        if looking_at not in names:
+            names[looking_at] = {}
+
+        names[looking_at]['name'] = name
+
+def set_topics(topics):
+    looking_at = get_looking_at()
+    if looking_at is not None:
+        if looking_at in names:
+            names[looking_at]['topics'] = topics

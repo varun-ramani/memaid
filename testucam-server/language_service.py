@@ -2,6 +2,7 @@ from queue import Queue
 from threading import Thread
 from http.client import responses
 from time import sleep
+from cv2 import bilateralFilter
 import requests as re
 import os
 from google.cloud import language_v1
@@ -41,17 +42,15 @@ def sample_analyze_entities(text_content):
     persons = []
     # Loop through entitites returned from the API
     for entity in response.entities:
-        print(u"Representative name for the entity: {}".format(entity.name))
         entity_type = language_v1.Entity.Type(entity.type_).name
         # Get entity type, e.g. PERSON, LOCATION, ADDRESS, NUMBER, et al
-        print(u"Entity type: {}".format(language_v1.Entity.Type(entity.type_).name))
         if entity_type == "PERSON":
             persons.append(entity.name)
         # Get the salience score associated with the entity in the [0, 1.0] range
-        print(u"Salience score: {}".format(entity.salience))
         if entity.salience > 0.05:
             bullet_points.append(entity.name)
 
+    print(bullet_points)
     
     return persons, bullet_points
 
@@ -65,7 +64,6 @@ def start_language_service():
         if not transcription_queue.empty():
             next_transcription = transcription_queue.get()
             # check if we're looking at something
-            print(next_transcription)
             persons, bullet_points = sample_analyze_entities(next_transcription)
             looking_for = "my name is"
             punctuation = "!\"'(),.:;?`"
@@ -87,6 +85,8 @@ def start_language_service():
                 
                 if name in persons and name.lower() != my_name.lower():
                     synchronization_service.set_name(name)
+
+            synchronization_service.set_topics(bullet_points)
 
         sleep(0.05)
 

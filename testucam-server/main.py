@@ -102,7 +102,6 @@ async def offer(request):
     @pc.on("track")
     def on_track(track: RemoteStreamTrack):
         log_info("Track %s received", track.kind)
-        print(f"Got new track {track.kind}")
 
         if track.kind == "audio":
             audio_consumer.set_consume_track(track)
