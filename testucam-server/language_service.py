@@ -1,6 +1,7 @@
 from queue import Queue
 from threading import Thread
 from http.client import responses
+from time import sleep
 import requests as re
 import os
 from google.cloud import language_v1
@@ -84,5 +85,7 @@ def start_language_service():
                 if name in persons and name.lower() != my_name.lower():
                     print(name)
 
+        sleep(0.05)
+
 language_service_thread = Thread(target=start_language_service)
-# language_service_thread.start()
+language_service_thread.start()
