@@ -7,10 +7,6 @@ import cv2
 
 face_encodings = {}
 
-def restore_saved_data():
-    global face_encodings
-    with open("encodings.json", "r") as infile:
-        face_encodings = json.load(infile)
 
 # take array of face coordinates and return the index of the largest face
 def find_prominent_face(faces):
@@ -58,13 +54,12 @@ def find_face_vector(image_file):
         new_name = language_processing.get_name()
         face_encodings[hex_face.hexdigest()] = new_name
         # save the face encodings to a file
-        with open("encodings.json", "w") as outfile:
-            json.dump(face_encodings, outfile)
+        print ("you posted cringe")
         return new_name
 
 if __name__ == "__main__":
-    restore_saved_data()
-    print(find_face_vector("./test-images/obama.jpg"))
+   #restore_saved_data()
+    print(find_face_vector("./test-images/obama2.jpg"))
    # print(find_face_vector("./test-images/theboys.jpg"))
     #print(find_face_vector("./test-images/ramani1.jpg"))
 
