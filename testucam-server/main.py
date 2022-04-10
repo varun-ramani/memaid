@@ -52,9 +52,9 @@ class VideoTransformTrack(MediaStreamTrack):
         face_locations = face_recognition.face_locations(img)
         max_area = 0
         max_index = 0
-        for i in range(len(faces)):
-            x_len = abs(faces[i][2] - faces[i][0])
-            y_len = abs(faces[i][3] - faces[i][1])
+        for i in range(len(face_locations)):
+            x_len = abs(face_locations[i][2] - face_locations[i][0])
+            y_len = abs(face_locations[i][3] - face_locations[i][1])
             if x_len * y_len > max_area:
                 max_area = x_len * y_len
                 max_index = i
