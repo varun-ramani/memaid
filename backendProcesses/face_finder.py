@@ -7,6 +7,7 @@ import language_processing
 face_encodings = {}
 
 def restore_saved_data():
+    global face_encodings
     with open("encodings.json", "r") as infile:
         face_encodings = json.load(infile)
 
@@ -26,12 +27,15 @@ def find_prominent_face(faces):
 
 # 
 def find_face_vector(image_file):
-    face_encodings = {}
+    global face_encodings
     #get the location of the faces in the image
     image = face_recognition.load_image_file(image_file)
     face_locations = face_recognition.face_locations(image)
 
     # find the index of the most prominent image
+    if len(face_locations) == 0:
+        return None
+    
     max_index = find_prominent_face(face_locations)
     #get the face encoding of the most prominent face
     max_face_encoding = face_recognition.face_encodings(image)[max_index]
@@ -53,5 +57,11 @@ def find_face_vector(image_file):
         with open("encodings.json", "w") as outfile:
             json.dump(face_encodings, outfile)
         return new_name
+
+if __name__ == "__main__":
+    restore_saved_data()
+    print(find_face_vector("./test-images/theboys.jpg"))
+    print(find_face_vector("./test-images/ramani2.jpg"))
+    print(find_face_vector("./test-images/ramani1.jpg"))
 
     
