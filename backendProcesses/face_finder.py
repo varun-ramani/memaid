@@ -5,7 +5,8 @@ import json
 import language_processing
 import cv2
 
-face_encodings = {}
+face_encodings = []
+names = []
 
 
 # take array of face coordinates and return the index of the largest face
