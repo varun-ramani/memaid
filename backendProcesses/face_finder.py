@@ -31,8 +31,8 @@ def find_face_vector(image_file):
     global face_encodings
     #get the location of the faces in the image
     
-    image = face_recognition.load_image_file(rgb_small_frame)
-    small_frame = cv2.resize(image, (0, 0), fx=0.25, fy=0.25)
+    image = face_recognition.load_image_file(image_file)
+    small_frame = cv2.resize(image, (0, 0), fx=1, fy=1)
     rgb_small_frame = small_frame[:, :, ::-1]
     face_locations = face_recognition.face_locations(rgb_small_frame)
     
@@ -65,7 +65,7 @@ def find_face_vector(image_file):
 if __name__ == "__main__":
     restore_saved_data()
     print(find_face_vector("./test-images/obama.jpg"))
-    print(find_face_vector("./test-images/theboys.jpg"))
+   # print(find_face_vector("./test-images/theboys.jpg"))
     #print(find_face_vector("./test-images/ramani1.jpg"))
 
     
