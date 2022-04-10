@@ -4,14 +4,10 @@ from hashlib import sha512
 import json
 import language_processing
 import cv2
-import time
-start_time = time.time()
-face_encodings = {}
 
-def restore_saved_data():
-    global face_encodings
-    with open("encodings.json", "r") as infile:
-        face_encodings = json.load(infile)
+face_encodings = []
+names = []
+
 
 # take array of face coordinates and return the index of the largest face
 def find_prominent_face(faces):
