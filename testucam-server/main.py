@@ -78,7 +78,6 @@ class VideoTransformTrack(MediaStreamTrack):
             cv2.putText(img, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
         transform_output = img
-
         new_frame = VideoFrame.from_ndarray(img, format="bgr24")
         new_frame.pts = frame.pts
         new_frame.time_base = frame.time_base
