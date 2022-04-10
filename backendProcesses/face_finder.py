@@ -43,7 +43,7 @@ def find_face_vector(image_file):
     max_face_encoding = face_recognition.face_encodings(image)[max_index]
     #convert the face encoding to a list
     max_face_encoding.tolist()
-    print(type(max_face_encoding))
+    #print(type(max_face_encoding))
 
     #generate a hash for the face encoding
     hex_face = sha512(max_face_encoding)
@@ -62,8 +62,8 @@ def find_face_vector(image_file):
 
 if __name__ == "__main__":
     restore_saved_data()
+    print(find_face_vector("./test-images/obama.jpg"))
     print(find_face_vector("./test-images/theboys.jpg"))
-    print(find_face_vector("./test-images/ramani2.jpg"))
-    print(find_face_vector("./test-images/ramani1.jpg"))
+    #print(find_face_vector("./test-images/ramani1.jpg"))
 
     
