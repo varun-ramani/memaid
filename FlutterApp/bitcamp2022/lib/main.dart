@@ -350,6 +350,7 @@ class SecondRoute extends StatelessWidget {
                     "Bullet Points:",
                     style: TextStyle(fontSize: 20),
                   ),
+                  Padding(padding: const EdgeInsets.all(10.0)),
                   Column(children: getBulletPoints())
                 ])));
   }
