@@ -20,14 +20,15 @@ logger = logging.getLogger("pc")
 pcs = set()
 relay = MediaRelay()
 
-from pathlib import Path
-data_json_path = Path("data.json")
-if data_json_path.exists():
-    with open("data.json", "r") as f:
-        data_storage = json.load(f)
-else:
-    data_storage = {}
-
+# from pathlib import Path
+# data_json_path = Path("data.json")
+# if data_json_path.exists():
+#     with open("data.json", "r") as f:
+#         data_storage = json.load(f)
+# else:
+#     data_storage = {}
+faces = []
+names = []
 
 class VideoTransformTrack(MediaStreamTrack):
     """
@@ -41,14 +42,41 @@ class VideoTransformTrack(MediaStreamTrack):
         self.track = track
 
     async def recv(self):
+        global faces
+        global names
         frame = await self.track.recv()
 
         img = frame.to_ndarray(format="bgr24")
         
         # whatever you do here
+        face_locations = face_recognition.face_locations(img)
+        max_area = 0
+        max_index = 0
+        for i in range(len(faces)):
+            x_len = abs(faces[i][2] - faces[i][0])
+            y_len = abs(faces[i][3] - faces[i][1])
+            if x_len * y_len > max_area:
+                max_area = x_len * y_len
+                max_index = i
         
-        transform_output = img
+        max_face_encoding = face_recognition.face_encodings(image)[max_index]
+        
+        matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
+        face_distances = face_recognition.face_distance(faces, max_face_encoding)
+        best_match_index = np.argmin(face_distances)
+        if matches[best_match_index]:
+            print("Duplicate face")
+        else:
+            faces.append(max_face_encoding)
+            names.append("Ramani")
 
+        for (top, right, bottom, left), name in zip(face_locations, names):
+            cv2.rectangle(img, (left, top), (right, bottom), (0, 0, 255), 2)
+            cv2.rectangle(img, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+            font = cv2.FONT_HERSHEY_DUPLEX
+            cv2.putText(img, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+
+        transform_output = img
         new_frame = VideoFrame.from_ndarray(img, format="bgr24")
         new_frame.pts = frame.pts
         new_frame.time_base = frame.time_base
@@ -146,9 +174,9 @@ for route in list(app.router.routes()):
         )
     })
 
-def persist_data():
-    with open("data.json", "w") as f:
-        json.dump(data_storage, f)
+# def persist_data():
+#     with open("data.json", "w") as f:
+#         json.dump(data_storage, f)
 
 atexit.register(persist_data)
 
