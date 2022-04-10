@@ -29,8 +29,7 @@ def add_to_queue(new_value):
 
     if most_common != previous_most_common and most_common in names:
         speech_service.text_to_wav(f"en-US-Wavenet-B", f"{names[most_common]} is looking at you!")
-        player = MediaPlayer(os.path.join(os.path.dirname(__file__), "demo-instruct.wav"))
-        pc.addTrack(player.audio)
+        os.system("vlc --vout none --no-video --play-and-exit output.wav")
 
     last_update = datetime.datetime.now()
 

@@ -61,7 +61,6 @@ def facial_recognition(input_image):
 
     encodings = face_recognition.face_encodings(input_image)
     if len(encodings) == 0:
-        print("Failed to find valid encodings")
         return
 
     encoding = encodings[0]
