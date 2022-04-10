@@ -53,7 +53,7 @@ def sample_analyze_entities(text_content):
 
 def add_transcription(sentence):
     transcription_queue.put(sentence)
-    
+
 my_name = "Mark"
 def start_language_service():
     global my_name
@@ -65,18 +65,18 @@ def start_language_service():
             persons, bullet_points = sample_analyze_entities(next_transcription)
             looking_for = "my name is"
             punctuation = "!\"'(),.:;?`"
-            name_start = text_content.lower().find(looking_for)
+            name_start = next_transcription.lower().find(looking_for)
             if name_start != -1:
-                name_rest = text_content[name_start + len(looking_for) + 1:]
+                name_rest = next_transcription[name_start + len(looking_for) + 1:]
                 name = name_rest[:name_rest.find(" ")]
                 name = name.strip()
                 for character in punctuation:
                     name = name.replace(character, '')
                 if name.lower() != my_name.lower():
                     print(name)
-            elif text_content.lower().find("i'm") != -1:
-                name_start = text_content.lower().find("i'm")
-                name_rest = text_content[name_start + len("i'm") + 1:]
+            elif next_transcription.lower().find("i'm") != -1:
+                name_start = next_transcription.lower().find("i'm")
+                name_rest = next_transcription[name_start + len("i'm") + 1:]
                 name = name_rest[:name_rest.find(" ")]
                 for character in punctuation:
                     name = name.replace(character, '')
@@ -85,4 +85,4 @@ def start_language_service():
                     print(name)
 
 language_service_thread = Thread(target=start_language_service)
-language_service_thread.start()
+# language_service_thread.start()

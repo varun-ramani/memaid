@@ -13,12 +13,8 @@ import pyaudio
 
 import audioop
 
-from streamaudio import start_recog_thread
+from transcription_service import start_recog_thread
 audio = pyaudio.PyAudio()
-
-# streamOut = audio.open(format=pyaudio.paFloat32, channels=1,
-#                        rate=48000, output=True, input_device_index=0,
-#                        frames_per_buffer=960)
 
 RATE = 48000
 CHUNK = 960

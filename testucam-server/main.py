@@ -5,6 +5,10 @@ import logging
 import os
 import uuid
 
+import face_recognition
+import numpy as np
+import cv2
+
 from aiohttp import web
 from av import VideoFrame
 import aiohttp_cors
@@ -49,34 +53,33 @@ class VideoTransformTrack(MediaStreamTrack):
         img = frame.to_ndarray(format="bgr24")
         
         # # whatever you do here
-        face_locations = face_recognition.face_locations(img)
-        max_area = 0
-        max_index = 0
-        for i in range(len(face_locations)):
-            x_len = abs(face_locations[i][2] - face_locations[i][0])
-            y_len = abs(face_locations[i][3] - face_locations[i][1])
-            if x_len * y_len > max_area:
-                max_area = x_len * y_len
-                max_index = i
+        # face_locations = face_recognition.face_locations(img)
+        # max_area = 0
+        # max_index = 0
+        # for i in range(len(face_locations)):
+        #     x_len = abs(face_locations[i][2] - face_locations[i][0])
+        #     y_len = abs(face_locations[i][3] - face_locations[i][1])
+        #     if x_len * y_len > max_area:
+        #         max_area = x_len * y_len
+                # max_index = i
         
-        max_face_encoding = face_recognition.face_encodings(img)[max_index]
+        # max_face_encoding = face_recognition.face_encodings(img)[max_index]
         
-        matches = face_recognition.compare_faces(faces, max_face_encoding)
-        face_distances = face_recognition.face_distance(faces, max_face_encoding)
-        best_match_index = np.argmin(face_distances)
-        if matches[best_match_index]:
-            print("Duplicate face")
-        else:
-            faces.append(max_face_encoding)
-            names.append("Ramani")
+        # matches = face_recognition.compare_faces(faces, max_face_encoding)
+        # face_distances = face_recognition.face_distance(faces, max_face_encoding)
+        # best_match_index = np.argmin(face_distances)
+        # if matches[best_match_index]:
+        #     print("Duplicate face")
+        # else:
+        #     faces.append(max_face_encoding)
+        #     names.append("Ramani")
 
-        # for (top, right, bottom, left), name in zip(face_locations, names):
-        #     cv2.rectangle(img, (left, top), (right, bottom), (0, 0, 255), 2)
-        #     cv2.rectangle(img, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
-        #     font = cv2.FONT_HERSHEY_DUPLEX
-        #     cv2.putText(img, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+        for (top, right, bottom, left), name in zip(face_locations, names):
+            cv2.rectangle(img, (left, top), (right, bottom), (0, 0, 255), 2)
+            cv2.rectangle(img, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+            font = cv2.FONT_HERSHEY_DUPLEX
+            cv2.putText(img, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
-        # transform_output = img
         new_frame = VideoFrame.from_ndarray(img, format="bgr24")
         new_frame.pts = frame.pts
         new_frame.time_base = frame.time_base
