@@ -128,7 +128,7 @@ class _StreamerState extends State<Streamer> {
     // _dataChannel!.onMessage = _onDataChannelMessage;
 
     final mediaConstraints = <String, dynamic>{
-      'audio': false,
+      'audio': true,
       'video': {
         'mandatory': {
           'minWidth':

@@ -11,6 +11,8 @@ from queue import Queue
 
 import pyaudio
 
+import audioop
+
 from streamaudio import start_recog_thread
 audio = pyaudio.PyAudio()
 
@@ -28,11 +30,11 @@ async def consume_audio(track: MediaStreamTrack):
         try:
             next_data: AudioFrame = await track.recv()
 
-            next_data_arr: np.ndarray = next_data.to_ndarray()
-            data_buffer.put(next_data_arr)
+            next_data_arr: np.ndarray = next_data.to_ndarray()[0]
+            next_data_bytes = b"".join([int(value).to_bytes(2, "little", signed=True) for value in next_data_arr])
 
-            # print(f"{next_data.format.name} {next_data.sample_rate} {next_data.samples} {next_data_arr}")
-            # print(len(data_buffer.queue))
+            next_data_bytes = audioop.tomono(next_data_bytes, 2, 1, 0)
+            data_buffer.put(next_data_bytes)
 
         except MediaStreamError:
             return
